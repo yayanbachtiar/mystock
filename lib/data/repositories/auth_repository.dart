@@ -12,4 +12,6 @@ class AuthRepository {
   Future<void> signOut() async {
     pb.authStore.clear();
   }
+
+  bool get isAuthenticated => pb.authStore.isValid;
 }

@@ -33,7 +33,8 @@ class MyApp extends StatelessWidget {
       home: LoginPage(authRepository: authRepository),
       routes: {
         '/login': (context) => LoginPage(authRepository: authRepository),
-        '/drugList': (context) => DrugListPage(drugRepository: drugRepository),
+        '/drugList': (context) => DrugListPage(
+            drugRepository: drugRepository, authRepository: authRepository),
         '/receiveDrug': (context) =>
             ReceiveDrugPage(drugRepository: drugRepository),
         '/importDrug': (context) =>

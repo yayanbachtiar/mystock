@@ -74,7 +74,7 @@ packages:
     source: hosted
     version: "2.0.5"
   excel:
-    dependency: "direct dev"
+    dependency: "direct main"
     description:
       name: excel
       sha256: f6a76fff6ac14f48fd44a6528e72705965e02cbc593e00427ab1d9a9f5d3bffa
@@ -98,7 +98,7 @@ packages:
     source: hosted
     version: "1.2.1"
   file_picker:
-    dependency: "direct dev"
+    dependency: "direct main"
     description:
       name: file_picker
       sha256: "704259669b5e9cb24e15c11cfcf02caf5f20d30901b3916d60b6d1c2d647035f"
@@ -153,7 +153,7 @@ packages:
     source: hosted
     version: "4.0.2"
   intl:
-    dependency: "direct dev"
+    dependency: "direct main"
     description:
       name: intl
       sha256: "3bc132a9dbce73a7e4a21a17d06e1878839ffbf975568bc875c60537824b0c4d"
@@ -249,7 +249,7 @@ packages:
     source: hosted
     version: "2.1.8"
   pocketbase:
-    dependency: "direct dev"
+    dependency: "direct main"
     description:
       name: pocketbase
       sha256: "1d2958a3a7cb1e0050f425f179bd6557441fafcf740a79d5b8b80d6954149790"

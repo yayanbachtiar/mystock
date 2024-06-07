@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:mystok/data/repositories/auth_repository.dart';
-import 'package:mystok/presentation/pages/drug_list_page.dart';
 
 class LoginPage extends StatefulWidget {
   final AuthRepository authRepository;
@@ -14,20 +13,27 @@ class LoginPage extends StatefulWidget {
 class _LoginPageState extends State<LoginPage> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  bool _isLoading = false;
+  String? _errorMessage;
 
   void _login() async {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
     try {
-      print(_emailController.text);
-      print(_passwordController.text);
-      await widget.authRepository.signIn(
-        _emailController.text,
-        _passwordController.text,
-      );
-      // Navigate to the main page
+      await widget.authRepository
+          .signIn(_emailController.text, _passwordController.text);
       Navigator.pushReplacementNamed(context, '/drugList');
     } catch (e) {
-      // Handle error
-      print(e);
+      setState(() {
+        _errorMessage = e.toString();
+      });
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
     }
   }
 
@@ -40,6 +46,7 @@ class _LoginPageState extends State<LoginPage> {
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
             TextField(
               controller: _emailController,
@@ -50,11 +57,17 @@ class _LoginPageState extends State<LoginPage> {
               decoration: InputDecoration(labelText: 'Password'),
               obscureText: true,
             ),
-            SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: _login,
-              child: Text('Login'),
-            ),
+            if (_errorMessage != null) ...[
+              SizedBox(height: 16),
+              Text(_errorMessage!, style: TextStyle(color: Colors.red)),
+            ],
+            SizedBox(height: 16),
+            _isLoading
+                ? CircularProgressIndicator()
+                : ElevatedButton(
+                    onPressed: _login,
+                    child: Text('Login'),
+                  ),
           ],
         ),
       ),

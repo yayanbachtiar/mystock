@@ -30,6 +30,5 @@
 	<string>NSApplication</string>
 	<key>NSAppTransportSecurity</key>
     <key>NSAllowsArbitraryLoads</key>
-    <true/>
 </dict>
 </plist>
