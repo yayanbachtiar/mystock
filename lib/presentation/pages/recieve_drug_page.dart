@@ -18,7 +18,7 @@ class _ReceiveDrugPageState extends State<ReceiveDrugPage> {
     try {
       await widget.drugRepository.addDrug(
         _nameController.text,
-        int.parse(_stockController.text),
+        _stockController.text,
       );
       // Show success message
       ScaffoldMessenger.of(context).showSnackBar(
@@ -52,8 +52,8 @@ class _ReceiveDrugPageState extends State<ReceiveDrugPage> {
             ),
             TextField(
               controller: _stockController,
-              decoration: InputDecoration(labelText: 'Stock'),
-              keyboardType: TextInputType.number,
+              decoration: InputDecoration(labelText: 'Satuan'),
+              keyboardType: TextInputType.text,
             ),
             SizedBox(height: 20),
             ElevatedButton(

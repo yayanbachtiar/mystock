@@ -7,15 +7,18 @@ class DrugRepository {
 
   DrugRepository(this.pb);
 
-  Future<List<Drug>> fetchDrugs() async {
-    final records = await pb.collection('drugs').getFullList();
-    return records.map((record) => Drug.fromJson(record.toJson())).toList();
+  Future<List<Drug>> fetchDrugs(String name) async {
+    final filterString = '(name~"$name")';
+    final records = await pb.collection('drugs').getList(filter: filterString);
+    return records.items
+        .map((record) => Drug.fromJson(record.toJson()))
+        .toList();
   }
 
-  Future<void> addDrug(String name, int stock) async {
+  Future<void> addDrug(String name, String satuan) async {
     final data = {
       'name': name,
-      'stock': stock,
+      'satuan': satuan,
     };
     await pb.collection('drugs').create(body: data);
   }
@@ -50,8 +53,8 @@ class DrugRepository {
     return Stock.fromJson(records.first.toJson());
   }
 
-  Future<List<Map<String, dynamic>>> fetchDrugsWithStock() async {
-    final drugs = await fetchDrugs();
+  Future<List<Map<String, dynamic>>> fetchDrugsWithStock(String name) async {
+    final drugs = await fetchDrugs(name);
     final drugWithStockList = <Map<String, dynamic>>[];
 
     for (var drug in drugs) {

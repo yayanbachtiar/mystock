@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:mystok/data/repositories/issue_repository.dart';
+import 'package:mystok/data/repositories/jurnal_repository.dart';
+import 'package:mystok/data/repositories/stok_repository.dart';
+import 'package:mystok/presentation/pages/issues_drug_page.dart';
 import 'package:mystok/presentation/pages/recieve_drug_page.dart';
 import 'package:pocketbase/pocketbase.dart';
 import 'package:mystok/data/repositories/auth_repository.dart';
@@ -17,15 +21,22 @@ class MyApp extends StatelessWidget {
   final PocketBase pb = PocketBase('http://10.0.0.102:8080');
   late final AuthRepository authRepository;
   late final DrugRepository drugRepository;
+  late final IssueRepository issueRepository;
+  late final StockRepository stockRepository;
+  late final JurnalRepository jurnalRepository;
 
-  MyApp() {
+  MyApp({super.key}) {
     authRepository = AuthRepository(pb);
     drugRepository = DrugRepository(pb);
+    stockRepository = StockRepository(pb);
+    issueRepository = IssueRepository(pb);
+    jurnalRepository = JurnalRepository(pb);
   }
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
       title: 'Stock Obat App',
       theme: ThemeData(
         primarySwatch: Colors.blue,
@@ -42,6 +53,12 @@ class MyApp extends StatelessWidget {
         '/adjustDrug': (context) =>
             AdjustDrugPage(drugRepository: drugRepository),
         '/report': (context) => ReportPage(drugRepository: drugRepository),
+        '/issueDrug': (context) => IssuesDrugPage(
+              drugRepository: drugRepository,
+              issueRepository: issueRepository,
+              stockRepository: stockRepository,
+              jurnalRepository: jurnalRepository,
+            ),
       },
     );
   }

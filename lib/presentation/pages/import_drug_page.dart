@@ -19,8 +19,9 @@ class _ImportDrugPageState extends State<ImportDrugPage> {
       FilePickerResult? result = await FilePicker.platform.pickFiles(
         type: FileType.custom,
         allowedExtensions: ['xlsx'],
+        allowMultiple: false,
+        withData: true, // Memastikan bytes dari file di-load ke memori
       );
-
       if (result != null) {
         var bytes = result.files.first.bytes;
         var excel = Excel.decodeBytes(bytes!);
@@ -30,10 +31,11 @@ class _ImportDrugPageState extends State<ImportDrugPage> {
           for (var row in sheet.rows.skip(1)) {
             // Assuming the first column is the drug name and the second column is the stock
             var name = row[0]?.value;
-            var stock = row[1]?.value;
+            var satuan = row[1]?.value;
 
-            if (name != null && stock != null) {
-              await widget.drugRepository.addDrug(name.toString(), stock);
+            if (name != null && satuan != null) {
+              await widget.drugRepository
+                  .addDrug(name.toString(), satuan.toString());
             }
           }
         }
