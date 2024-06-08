@@ -12,7 +12,7 @@ class JurnalRepository {
 
   Future<List<JurnalObat>> getJurnalByDateLessThan(DateTime date) async {
     final response = await client.collection('jurnals').getList(
-          filter: 'createdAt < "${date.toIso8601String()}"',
+          filter: '(date <= "${date.toIso8601String()}")',
         );
 
     return response.items

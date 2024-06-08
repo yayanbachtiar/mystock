@@ -17,7 +17,7 @@ class JurnalObat {
   });
 
   factory JurnalObat.fromJson(Map<String, dynamic> json) => JurnalObat(
-        drugId: json['drugId'],
+        drugId: json['obat'],
         debet: json['debet'],
         kredit: json['kredit'],
         note: json['note'],

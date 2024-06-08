@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:excel/excel.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:month_picker_dialog/month_picker_dialog.dart';
 import 'package:mystok/data/models/issue_model.dart';
 import 'package:mystok/data/models/jurnal_model.dart';
 import 'package:mystok/data/models/stock_model.dart';
@@ -35,6 +36,7 @@ class _IssuesDrugPageState extends State<IssuesDrugPage> {
   File? _selectedFile;
   bool _isLoading = false;
   String _message = '';
+  DateTime? _selectedMonth;
 
   Future<void> _pickFile() async {
     FilePickerResult? result = await FilePicker.platform.pickFiles(
@@ -224,6 +226,21 @@ class _IssuesDrugPageState extends State<IssuesDrugPage> {
     }
   }
 
+  Future<void> _selectMonth(BuildContext context) async {
+    final DateTime? picked = await showMonthPicker(
+      context: context,
+      initialDate: _selectedMonth ?? DateTime.now(),
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2100),
+    );
+
+    if (picked != null && picked != _selectedMonth) {
+      setState(() {
+        _selectedMonth = picked;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -236,12 +253,18 @@ class _IssuesDrugPageState extends State<IssuesDrugPage> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             TextField(
-              controller: _monthController,
+              readOnly: true,
+              onTap: () => _selectMonth(context),
               decoration: InputDecoration(
                 labelText: 'Month (YYYY-MM)',
                 border: OutlineInputBorder(),
+                suffixIcon: Icon(Icons.calendar_today),
               ),
-              keyboardType: TextInputType.datetime,
+              controller: TextEditingController(
+                text: _selectedMonth != null
+                    ? "${_selectedMonth!.year}-${_selectedMonth!.month.toString().padLeft(2, '0')}"
+                    : '',
+              ),
             ),
             SizedBox(height: 16),
             ElevatedButton(

@@ -1,12 +1,19 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:mystok/data/repositories/drug_repository.dart';
 import 'package:mystok/data/models/drug_model.dart';
+import 'package:mystok/data/repositories/jurnal_repository.dart';
 
 class ReportPage extends StatefulWidget {
   final DrugRepository drugRepository;
+  final JurnalRepository jurnalRepository;
 
-  ReportPage({required this.drugRepository});
+  const ReportPage(
+      {super.key,
+      required this.drugRepository,
+      required this.jurnalRepository});
 
   @override
   _ReportPageState createState() => _ReportPageState();
@@ -26,7 +33,33 @@ class _ReportPageState extends State<ReportPage> {
     if (picked != null && picked != _selectedDate) {
       setState(() {
         _selectedDate = picked;
-        _drugs = widget.drugRepository.fetchDrugsByDate(_selectedDate!);
+        var mapJurnal = <String, int>{};
+        var jurnal = widget.jurnalRepository
+            .getJurnalByDateLessThan(_selectedDate!)
+            .then((jurnal) {
+          for (var jurnal in jurnal) {
+            var stok = jurnal.kredit - jurnal.debet;
+            mapJurnal[jurnal.drugId] = stok;
+          }
+          return widget.drugRepository.fetchDrugs("");
+        }).then((drugs) {
+          var updatedDrugs = <Drug>{};
+          for (var item in drugs) {
+            var update = Drug(
+                id: item.id,
+                name: item.name,
+                satuan: item.satuan,
+                nomorObat: item.nomorObat,
+                strength: item.strength);
+            update.stock = mapJurnal[item.id] ?? 0;
+            updatedDrugs.add(update);
+          }
+
+          _drugs = Future.value(updatedDrugs.toList());
+          print(_drugs);
+        });
+
+        // Dapatkan semua obat dari ID obat
       });
     }
   }

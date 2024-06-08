@@ -1,7 +1,7 @@
 class Drug {
   final String id;
   final String name;
-  final int? stock;
+  int? stock;
   final String strength;
   final String satuan;
   final int? nomorObat;
