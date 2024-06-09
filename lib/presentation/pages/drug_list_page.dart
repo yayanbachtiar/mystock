@@ -1,9 +1,10 @@
-import 'dart:async'; // Tambahkan ini untuk Timer
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:mystok/data/repositories/auth_repository.dart';
 import 'package:mystok/data/repositories/drug_repository.dart';
 import 'package:mystok/data/models/drug_model.dart';
 import 'package:mystok/data/models/stock_model.dart';
+import 'package:data_table_2/data_table_2.dart';
 
 class DrugListPage extends StatefulWidget {
   final DrugRepository drugRepository;
@@ -37,7 +38,6 @@ class _DrugListPageState extends State<DrugListPage> {
   void _onSearchChanged() {
     if (_debounce?.isActive ?? false) _debounce?.cancel();
     _debounce = Timer(const Duration(milliseconds: 300), () {
-      // Call your search method here
       setState(() {
         _drugsWithStock =
             widget.drugRepository.fetchDrugsWithStock(_searchController.text);
@@ -71,24 +71,9 @@ class _DrugListPageState extends State<DrugListPage> {
             tooltip: 'Refresh Data',
           ),
           IconButton(
-            icon: Icon(Icons.add),
-            onPressed: () => _navigateTo('/receiveDrug'),
-            tooltip: 'Receive Drug',
-          ),
-          IconButton(
-            icon: Icon(Icons.upload_file),
-            onPressed: () => _navigateTo('/importDrug'),
-            tooltip: 'Import Drug',
-          ),
-          IconButton(
-            icon: Icon(Icons.remove),
+            icon: Icon(Icons.file_download),
             onPressed: () => _navigateTo('/issueDrug'),
             tooltip: 'Issue Drug',
-          ),
-          IconButton(
-            icon: Icon(Icons.edit),
-            onPressed: () => _navigateTo('/adjustDrug'),
-            tooltip: 'Adjust Drug',
           ),
           IconButton(
             icon: Icon(Icons.report),
@@ -129,39 +114,20 @@ class _DrugListPageState extends State<DrugListPage> {
                 } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
                   return Center(child: Text('No drugs available'));
                 } else {
-                  return LayoutBuilder(
-                    builder:
-                        (BuildContext context, BoxConstraints constraints) {
-                      return SingleChildScrollView(
-                        scrollDirection: Axis.vertical,
-                        child: SingleChildScrollView(
-                          scrollDirection: Axis.horizontal,
-                          child: ConstrainedBox(
-                            constraints:
-                                BoxConstraints(minWidth: constraints.maxWidth),
-                            child: IntrinsicWidth(
-                              child: DataTable(
-                                columns: [
-                                  DataColumn(label: Text('Nama Obat')),
-                                  DataColumn(label: Text('Satuan')),
-                                  DataColumn(label: Text('Stock')),
-                                ],
-                                rows: snapshot.data!.map((item) {
-                                  final drug = item['drug'] as Drug;
-                                  final stock = item['stock'] as Stock?;
-
-                                  return DataRow(cells: [
-                                    DataCell(Text(drug.name)),
-                                    DataCell(Text(drug.satuan)),
-                                    DataCell(Text(
-                                        stock?.quantity.toString() ?? 'N/A')),
-                                  ]);
-                                }).toList(),
-                              ),
-                            ),
-                          ),
-                        ),
-                      );
+                  return PaginatedDataTable2(
+                    header: Text('List Obat'),
+                    columns: [
+                      DataColumn(label: Text('Nama Obat')),
+                      DataColumn(label: Text('Satuan')),
+                      DataColumn(label: Text('Stock')),
+                    ],
+                    source: _DrugDataSource(snapshot.data!),
+                    rowsPerPage: 10,
+                    availableRowsPerPage: [10, 20, 50],
+                    onRowsPerPageChanged: (newRowsPerPage) {
+                      setState(() {
+                        // Change rows per page
+                      });
                     },
                   );
                 }
@@ -172,4 +138,32 @@ class _DrugListPageState extends State<DrugListPage> {
       ),
     );
   }
+}
+
+class _DrugDataSource extends DataTableSource {
+  final List<Map<String, dynamic>> _data;
+
+  _DrugDataSource(this._data);
+
+  @override
+  DataRow? getRow(int index) {
+    if (index >= _data.length) return null;
+    final drug = _data[index]['drug'] as Drug;
+    final stock = _data[index]['stock'] as Stock?;
+
+    return DataRow(cells: [
+      DataCell(Text(drug.name)),
+      DataCell(Text(drug.satuan)),
+      DataCell(Text(stock?.quantity.toString() ?? 'N/A')),
+    ]);
+  }
+
+  @override
+  bool get isRowCountApproximate => false;
+
+  @override
+  int get rowCount => _data.length;
+
+  @override
+  int get selectedRowCount => 0;
 }

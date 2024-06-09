@@ -1,10 +1,10 @@
 import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:mystok/data/repositories/drug_repository.dart';
 import 'package:mystok/data/models/drug_model.dart';
 import 'package:mystok/data/repositories/jurnal_repository.dart';
+import 'package:data_table_2/data_table_2.dart';
 
 class ReportPage extends StatefulWidget {
   final DrugRepository drugRepository;
@@ -21,7 +21,11 @@ class ReportPage extends StatefulWidget {
 
 class _ReportPageState extends State<ReportPage> {
   DateTime? _selectedDate;
-  late Future<List<Drug>> _drugs;
+  Future<List<Drug>>? _drugsFuture;
+  List<Drug> _drugs = [];
+  List<Drug> _filteredDrugs = [];
+  String _searchQuery = '';
+  int _rowsPerPage = PaginatedDataTable.defaultRowsPerPage;
 
   void _selectDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
@@ -33,41 +37,57 @@ class _ReportPageState extends State<ReportPage> {
     if (picked != null && picked != _selectedDate) {
       setState(() {
         _selectedDate = picked;
-        var mapJurnal = <String, int>{};
-        var jurnal = widget.jurnalRepository
-            .getJurnalByDateLessThan(_selectedDate!)
-            .then((jurnal) {
-          for (var jurnal in jurnal) {
-            var stok = jurnal.kredit - jurnal.debet;
-            mapJurnal[jurnal.drugId] = stok;
-          }
-          return widget.drugRepository.fetchDrugs("");
-        }).then((drugs) {
-          var updatedDrugs = <Drug>{};
-          for (var item in drugs) {
-            var update = Drug(
-                id: item.id,
-                name: item.name,
-                satuan: item.satuan,
-                nomorObat: item.nomorObat,
-                strength: item.strength);
-            update.stock = mapJurnal[item.id] ?? 0;
-            updatedDrugs.add(update);
-          }
-
-          _drugs = Future.value(updatedDrugs.toList());
-          print(_drugs);
-        });
-
-        // Dapatkan semua obat dari ID obat
+        _fetchDrugsWithJurnalData();
       });
     }
+  }
+
+  Future<void> _fetchDrugsWithJurnalData() async {
+    var mapJurnal = <String, int>{};
+    var jurnal =
+        await widget.jurnalRepository.getJurnalByDateLessThan(_selectedDate!);
+
+    for (var j in jurnal) {
+      var stok = j.kredit - j.debet;
+      mapJurnal[j.drugId] = stok;
+    }
+
+    var drugs = await widget.drugRepository.fetchDrugs("");
+    var updatedDrugs = <Drug>[];
+
+    for (var item in drugs) {
+      var update = Drug(
+          id: item.id,
+          name: item.name,
+          satuan: item.satuan,
+          nomorObat: item.nomorObat,
+          strength: item.strength);
+      update.stock = mapJurnal[item.id] ?? 0;
+      updatedDrugs.add(update);
+    }
+
+    setState(() {
+      _drugs = updatedDrugs;
+      _filterDrugs();
+    });
+  }
+
+  void _filterDrugs() {
+    setState(() {
+      _filteredDrugs = _searchQuery.isEmpty
+          ? _drugs
+          : _drugs.where((drug) {
+              return drug.name
+                  .toLowerCase()
+                  .contains(_searchQuery.toLowerCase());
+            }).toList();
+    });
   }
 
   @override
   void initState() {
     super.initState();
-    _drugs = Future.value([]); // Default to an empty list
+    _drugsFuture = Future.value([]); // Default to an empty list
   }
 
   @override
@@ -90,35 +110,76 @@ class _ReportPageState extends State<ReportPage> {
                     'Tanggal Terpilih: ${DateFormat('dd-MM-yyyy').format(_selectedDate!)}')
                 : Text('Tidak ada tanggal yang dipilih'),
             SizedBox(height: 20),
-            FutureBuilder<List<Drug>>(
-              future: _drugs,
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return Center(child: CircularProgressIndicator());
-                } else if (snapshot.hasError) {
-                  return Center(child: Text('Error: ${snapshot.error}'));
-                } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                  return Center(
-                      child: Text('No drugs available for selected date'));
-                } else {
-                  return Expanded(
-                    child: ListView.builder(
-                      itemCount: snapshot.data!.length,
-                      itemBuilder: (context, index) {
-                        final drug = snapshot.data![index];
-                        return ListTile(
-                          title: Text(drug.name),
-                          subtitle: Text('Stock: ${drug.stock}'),
-                        );
-                      },
-                    ),
-                  );
-                }
+            TextField(
+              decoration: InputDecoration(
+                labelText: 'Search by Nama Obat or Tanggal',
+                border: OutlineInputBorder(),
+                prefixIcon: Icon(Icons.search),
+              ),
+              onChanged: (value) {
+                setState(() {
+                  _searchQuery = value;
+                  _filterDrugs();
+                });
               },
+            ),
+            SizedBox(height: 20),
+            Expanded(
+              child: FutureBuilder<List<Drug>>(
+                future: _drugsFuture,
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return Center(child: CircularProgressIndicator());
+                  } else if (snapshot.hasError) {
+                    return Center(child: Text('Error: ${snapshot.error}'));
+                  } else {
+                    return PaginatedDataTable2(
+                      columns: [
+                        DataColumn(label: Text('Nama Obat')),
+                        DataColumn(label: Text('Stock')),
+                      ],
+                      source: DrugDataTableSource(_filteredDrugs),
+                      onPageChanged: (page) {},
+                      rowsPerPage: _rowsPerPage,
+                      onRowsPerPageChanged: (perPage) {
+                        setState(() {
+                          _rowsPerPage = perPage!;
+                        });
+                      },
+                      sortColumnIndex: 0,
+                      sortAscending: true,
+                    );
+                  }
+                },
+              ),
             ),
           ],
         ),
       ),
     );
   }
+}
+
+class DrugDataTableSource extends DataTableSource {
+  final List<Drug> drugs;
+
+  DrugDataTableSource(this.drugs);
+
+  @override
+  DataRow getRow(int index) {
+    final drug = drugs[index];
+    return DataRow(cells: [
+      DataCell(Text(drug.name)),
+      DataCell(Text(drug.stock.toString())),
+    ]);
+  }
+
+  @override
+  bool get isRowCountApproximate => false;
+
+  @override
+  int get rowCount => drugs.length;
+
+  @override
+  int get selectedRowCount => 0;
 }

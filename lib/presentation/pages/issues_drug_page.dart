@@ -79,6 +79,8 @@ class _IssuesDrugPageState extends State<IssuesDrugPage> {
       return;
     }
 
+    var batchId = UniqueKey().toString();
+
     for (var i = 1; i < rows.length; i++) {
       var row = rows[i];
       var drugName = row[0]?.value;
@@ -144,6 +146,7 @@ class _IssuesDrugPageState extends State<IssuesDrugPage> {
           drugId: drug[0].id,
           date: date,
           quantity: quantity,
+          batchId: batchId,
         );
 
         var drugQty = qtyByDrugId[drug[0].id] ?? 0;
@@ -241,11 +244,15 @@ class _IssuesDrugPageState extends State<IssuesDrugPage> {
     }
   }
 
+  void _downloadExampleFile() {
+    // Implementasi untuk mengunduh file contoh
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Import Drug Data'),
+        title: Text('Import Pengeluaran Obat dari DGS'),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -284,6 +291,21 @@ class _IssuesDrugPageState extends State<IssuesDrugPage> {
             ),
             SizedBox(height: 16),
             Text(_message, style: TextStyle(color: Colors.red)),
+            SizedBox(height: 16),
+            Text(
+              'Data yang di support adalah data Excel yang di generate dari sistem DBS. Semua data tiap kolom tanggal, jika data pernah di import sebelumnya, data tidak akan diubah. Sistem hanya akan menyimpan data yang belum pernah tersimpan. Data di cari berdasarkan nama obat, hanya obat yang tersimpan di sistem yang bisa disimpan.',
+            ),
+            SizedBox(height: 8.0),
+            GestureDetector(
+              onTap: _downloadExampleFile,
+              child: Text(
+                'Anda bisa download contoh yang disini -> (download)',
+                style: TextStyle(
+                  color: Colors.blue,
+                  decoration: TextDecoration.underline,
+                ),
+              ),
+            ),
           ],
         ),
       ),

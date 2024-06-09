@@ -6,6 +6,7 @@ class Issue {
   final DateTime date;
   final int quantity;
   final String key;
+  final String batchId;
 
   Issue({
     this.id,
@@ -14,6 +15,7 @@ class Issue {
     required this.date,
     required this.quantity,
     required this.key,
+    required this.batchId,
   });
 
   factory Issue.fromJson(Map<String, dynamic> json) {
@@ -24,6 +26,7 @@ class Issue {
       date: DateTime.parse(json['tanggal_keluar']),
       quantity: json['quantity'],
       key: json['key'],
+      batchId: json['batch_id'],
     );
   }
 
@@ -34,6 +37,7 @@ class Issue {
       'tanggal_keluar': date.toIso8601String(),
       'quantity': quantity,
       'key': key,
+      'batch_id': batchId,
     };
   }
 }
