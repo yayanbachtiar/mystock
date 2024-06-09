@@ -16,6 +16,7 @@ class ApiConfigPageState extends State<ApiConfigPage> {
 
   @override
   void initState() {
+    super.initState();
     ConfigManager.getApiUrl()
         .then((value) => {_urlController.text = value ?? ''});
     ConfigManager.getUsername()
