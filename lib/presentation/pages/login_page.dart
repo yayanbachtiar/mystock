@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:mystok/common/config_manager.dart';
 import 'package:mystok/data/repositories/auth_repository.dart';
+import 'package:mystok/presentation/widget/password_field.dart';
 
 class LoginPage extends StatefulWidget {
   final AuthRepository authRepository;
@@ -15,6 +17,16 @@ class _LoginPageState extends State<LoginPage> {
   final _passwordController = TextEditingController();
   bool _isLoading = false;
   String? _errorMessage;
+
+  // init value from config
+  @override
+  void initState() {
+    super.initState();
+    ConfigManager.getUsername()
+        .then((value) => _emailController.text = value ?? '');
+    ConfigManager.getPassword()
+        .then((value) => _passwordController.text = value ?? '');
+  }
 
   void _login() async {
     setState(() {
@@ -48,15 +60,17 @@ class _LoginPageState extends State<LoginPage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            TextField(
-              controller: _emailController,
-              decoration: InputDecoration(labelText: 'Email'),
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8.0),
+              child: TextField(
+                controller: _emailController,
+                decoration: InputDecoration(
+                  labelText: 'Email',
+                  border: OutlineInputBorder(),
+                ),
+              ),
             ),
-            TextField(
-              controller: _passwordController,
-              decoration: InputDecoration(labelText: 'Password'),
-              obscureText: true,
-            ),
+            PasswordField(controller: _passwordController),
             if (_errorMessage != null) ...[
               SizedBox(height: 16),
               Text(_errorMessage!, style: TextStyle(color: Colors.red)),
@@ -68,6 +82,13 @@ class _LoginPageState extends State<LoginPage> {
                     onPressed: _login,
                     child: Text('Login'),
                   ),
+            SizedBox(height: 16),
+            IconButton(
+              icon: Icon(Icons.settings),
+              onPressed: () {
+                Navigator.pushReplacementNamed(context, '/apiConfig');
+              },
+            ),
           ],
         ),
       ),

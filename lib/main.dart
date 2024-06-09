@@ -18,8 +18,9 @@ import 'package:mystok/presentation/pages/report_page.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   String? apiUrl = await ConfigManager.getApiUrl();
-  print(apiUrl);
-  if (apiUrl == null) {
+  String? username = await ConfigManager.getUsername();
+  String? password = await ConfigManager.getPassword();
+  if (apiUrl == null || username == null || password == null) {
     // Redirect to API configuration page if API URL is not set
     runApp(ApiConfigApp());
   } else {
@@ -83,6 +84,7 @@ class MyApp extends StatelessWidget {
               stockRepository: stockRepository,
               jurnalRepository: jurnalRepository,
             ),
+        '/apiConfig': (context) => ApiConfigPage(),
       },
     );
   }
